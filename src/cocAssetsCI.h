@@ -14,6 +14,7 @@
 #pragma once
 
 #include "cocAssets.h"
+#include "cinder/audio/audio.h"
 
 #if defined( COC_CI )
 
@@ -30,6 +31,20 @@ public:
 };
 
 //--------------------------------------------------------------
+class AssetSoundCI : public AssetSound {
+
+public:
+
+    AssetSoundCI() : AssetSound() {
+            //
+    }
+    
+    ci::audio::SourceFileRef sourceFileRef;
+    ci::audio::VoiceSamplePlayerNodeRef voiceSamplePlayerNodeRef;
+    ci::audio::SamplePlayerNodeRef samplePlayerNodeRef;
+};
+
+//--------------------------------------------------------------
 class AssetsCI : public coc::Assets {
 
 public:
@@ -37,17 +52,23 @@ public:
     AssetsCI();
     ~AssetsCI();
     
-    void load(std::string assetID) override;
-    void unload(std::string assetID) override;
-    
     void update(float timeDelta=0) override;
     
     ci::gl::TextureRef getTexture(std::string assetID);
     
 protected:
 
-    Asset * initAsset() override;
-    void killAsset(Asset * asset) override;
+    AssetTexture * initTexture() override;
+    void killTexture(AssetTexture * asset) override;
+
+    AssetSound * initSound() override;
+    void killSound(AssetSound * asset) override;
+    
+    void loadTexture(std::string assetID) override;
+    void unloadTexture(std::string assetID) override;
+    
+    void loadSound(std::string assetID) override;
+    void unloadSound(std::string assetID) override;
     
 };
 

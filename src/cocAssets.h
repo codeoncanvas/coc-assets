@@ -18,7 +18,8 @@ namespace coc {
 //--------------------------------------------------------------
 enum AssetType {
     AssetTypeNone = 0,
-    AssetTypeTexture
+    AssetTypeTexture,
+    AssetTypeSound
 };
 
 //--------------------------------------------------------------
@@ -46,6 +47,14 @@ public:
 };
 
 //--------------------------------------------------------------
+class AssetSound : public Asset {
+public:
+    AssetSound() : Asset() {
+        type = AssetTypeSound;
+    }
+};
+
+//--------------------------------------------------------------
 class Assets {
 
 public:
@@ -53,7 +62,7 @@ public:
     Assets();
     ~Assets();
     
-    virtual const Asset & addAsset(std::string assetPath, std::string assetID="");
+    virtual const Asset * addAsset(std::string assetPath, AssetType assetType, std::string assetID="");
     virtual void removeAsset(std::string assetID);
     
     virtual void load(std::string assetID);
@@ -65,10 +74,19 @@ public:
     
 protected:
 
-    virtual Asset * initAsset();
-    virtual void killAsset(Asset * asset);
-    
     Asset * getAssetPtr(std::string assetID) const;
+
+    virtual AssetTexture * initTexture();
+    virtual void killTexture(AssetTexture * asset);
+    
+    virtual AssetSound * initSound();
+    virtual void killSound(AssetSound * asset);
+    
+    virtual void loadTexture(std::string assetID) {}
+    virtual void unloadTexture(std::string assetID) {}
+    
+    virtual void loadSound(std::string assetID) {}
+    virtual void unloadSound(std::string assetID) {}
     
     std::vector<Asset *> assets;
 };
