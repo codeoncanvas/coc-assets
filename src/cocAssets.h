@@ -55,6 +55,23 @@ public:
 };
 
 //--------------------------------------------------------------
+class AssetAsyncLoader {
+
+public:
+    
+    AssetAsyncLoader() : asset(NULL), bRunning(true) {}
+    ~AssetAsyncLoader() {
+        bRunning = false;
+    }
+
+    virtual void load(Asset * assetPtr) { asset = assetPtr; }
+    virtual void cancel() { asset = NULL; }
+    
+    Asset * asset;
+    bool bRunning;
+};
+
+//--------------------------------------------------------------
 class Assets {
 
 public:
@@ -63,10 +80,16 @@ public:
     ~Assets();
     
     virtual const Asset * addAsset(std::string assetPath, AssetType assetType, std::string assetID="");
+    virtual const Asset * addAssetAndLoad(std::string assetPath, AssetType assetType, std::string assetID="");
+    virtual const Asset * addAssetAndLoadAsync(std::string assetPath, AssetType assetType, std::string assetID="");
     virtual void removeAsset(std::string assetID);
     
-    virtual void load(std::string assetID);
+    virtual const Asset * load(std::string assetID);
+    virtual const Asset * loadAsync(std::string assetID);
+    
     virtual void unload(std::string assetID);
+    virtual void unloadAll();
+    virtual void clearLoadQueue();
     
     virtual void update(float timeDelta=0);
     
@@ -89,6 +112,9 @@ protected:
     virtual void unloadSound(std::string assetID) {}
     
     std::vector<Asset *> assets;
+    std::vector<Asset *> assetLoadQueue;
+    Asset * assetLoading;
+    AssetAsyncLoader * asyncLoader;
 };
 
 };

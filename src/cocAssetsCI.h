@@ -54,7 +54,8 @@ public:
     
     void update(float timeDelta=0) override;
     
-    ci::gl::TextureRef getTexture(std::string assetID);
+    const AssetTextureCI & getTexture(std::string assetID);
+    ci::gl::TextureRef getTextureRef(std::string assetID);
     
 protected:
 
@@ -70,6 +71,19 @@ protected:
     void loadSound(std::string assetID) override;
     void unloadSound(std::string assetID) override;
     
+};
+
+//--------------------------------------------------------------
+class AssetAsyncLoaderCI : public AssetAsyncLoader {
+
+public:
+
+    AssetAsyncLoaderCI();
+    ~AssetAsyncLoaderCI();
+
+    void loadThreadFn(ci::gl::ContextRef context);
+
+	std::shared_ptr<std::thread> thread;
 };
 
 };

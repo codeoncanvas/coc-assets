@@ -17,8 +17,9 @@
 
 namespace coc {
 
+//--------------------------------------------------------------
 AssetsCI::AssetsCI() : coc::Assets() {
-    //
+    asyncLoader = new AssetAsyncLoaderCI();
 }
 
 AssetsCI::~AssetsCI() {
@@ -33,7 +34,12 @@ void AssetsCI::update(float timeDelta) {
 }
 
 //--------------------------------------------------------------
-ci::gl::TextureRef AssetsCI::getTexture(std::string assetID) {
+const AssetTextureCI & AssetsCI::getTexture(std::string assetID) {
+    AssetTextureCI * asset = (AssetTextureCI *)getAssetPtr(assetID);
+    return *asset;
+}
+
+ci::gl::TextureRef AssetsCI::getTextureRef(std::string assetID) {
     AssetTextureCI * asset = (AssetTextureCI *)getAssetPtr(assetID);
     if(asset == NULL) {
         return NULL;
@@ -107,6 +113,34 @@ void AssetsCI::unloadSound(std::string assetID) {
     asset->samplePlayerNodeRef = NULL;
     asset->voiceSamplePlayerNodeRef = NULL;
     asset->sourceFileRef = NULL;
+}
+
+//--------------------------------------------------------------
+AssetAsyncLoaderCI::AssetAsyncLoaderCI() : AssetAsyncLoader() {
+    ci::gl::ContextRef backgroundCtx = ci::gl::Context::create( ci::gl::context() );
+	thread = std::shared_ptr<std::thread>( new std::thread( bind( &AssetAsyncLoaderCI::loadThreadFn, this, backgroundCtx ) ) );
+}
+
+AssetAsyncLoaderCI::~AssetAsyncLoaderCI() {
+    thread->join();
+}
+
+void AssetAsyncLoaderCI::loadThreadFn(ci::gl::ContextRef context) {
+
+	ci::ThreadSetup threadSetup;
+	context->makeCurrent();
+
+	while(bRunning) {
+		
+        if(asset == NULL) {
+            continue;
+        }
+        
+        AssetTextureCI * texture = (AssetTextureCI *)asset;
+        texture->textureRef = ci::gl::Texture::create(ci::loadImage(texture->assetPath));
+        texture->bLoaded = (texture->textureRef.get() != NULL);
+        asset = NULL;
+	}
 }
 
 };
