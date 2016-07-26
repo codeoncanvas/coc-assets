@@ -12,6 +12,7 @@
  **/
 
 #include "cocAssetsCI.h"
+#include "cinder/app/App.h"
 
 #if defined( COC_CI )
 
