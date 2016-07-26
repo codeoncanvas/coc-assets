@@ -14,6 +14,7 @@
 #pragma once
 
 #include "cocAssets.h"
+#include "cinder/gl/gl.h"
 #include "cinder/audio/audio.h"
 
 #if defined( COC_CI )
