@@ -27,6 +27,11 @@ Assets::~Assets() {
 
 //--------------------------------------------------------------
 const Asset * Assets::addAsset(std::string assetPath, AssetType assetType, std::string assetID) {
+    if(getAsset(assetID) != NULL) {
+        // asset with that ID already exists.
+        // do not add again.
+        return NULL;
+    }
     if(assetType == AssetTypeTexture) {
         assets.push_back(initTexture());
     } else if(assetType == AssetTypeSound) {
