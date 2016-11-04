@@ -13,6 +13,7 @@
 
 #include "cocAssetsCI.h"
 #include "cinder/app/App.h"
+#include "cinder/Log.h"
 
 #if defined( COC_CI )
 
@@ -142,6 +143,22 @@ void AssetAsyncLoaderCI::loadThreadFn(ci::gl::ContextRef context) {
         texture->bLoaded = (texture->textureRef.get() != NULL);
         asset = NULL;
 	}
+}
+
+//--------------------------------------------------------------
+
+bool AssetsCI::fileExists( std::string assetPath )
+{
+    if (!assetPath.length()) {
+        CI_LOG_E("Asset path is empty!");
+        return false;
+    }
+    bool result = ci::fs::exists( assetPath );
+    if (!result) {
+        CI_LOG_E("Asset does not exist! " << assetPath );
+        return false;
+    }
+    return true;
 }
 
 };

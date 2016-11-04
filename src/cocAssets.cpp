@@ -27,6 +27,9 @@ Assets::~Assets() {
 
 //--------------------------------------------------------------
 const Asset * Assets::addAsset(std::string assetPath, AssetType assetType, std::string assetID) {
+
+    if ( !fileExists(assetPath) ) return NULL;
+
     if(getAsset(assetID) != NULL) {
         // asset with that ID already exists.
         // do not add again.

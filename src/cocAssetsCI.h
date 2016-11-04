@@ -57,6 +57,8 @@ public:
     
     const AssetTextureCI & getTexture(std::string assetID);
     ci::gl::TextureRef getTextureRef(std::string assetID);
+
+	bool fileExists( std::string assetPath) override;
     
 protected:
 

@@ -96,6 +96,8 @@ public:
     virtual void update(float timeDelta=0);
     
     const Asset * getAsset(std::string assetID) const;
+
+    virtual bool fileExists( std::string assetPath ) { return true; }
     
 protected:
 

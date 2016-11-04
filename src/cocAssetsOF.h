@@ -25,6 +25,8 @@ public:
 
     AssetsOF();
     ~AssetsOF();
+
+    //bool fileExists( std::string assetPath) override;//todo: implement for OF
     
 };
 
