@@ -25,8 +25,12 @@ enum AssetType {
 };
 
 //--------------------------------------------------------------
+class Asset;
+typedef std::shared_ptr<Asset> AssetRef;
+
 class Asset {
 public:
+
     Asset() {
         type = AssetTypeNone;
         assetPath = "";
@@ -41,35 +45,26 @@ public:
 };
 
 //--------------------------------------------------------------
-class AssetTexture : public Asset {
-public:
-    AssetTexture() : Asset() {
-        type = AssetTypeTexture;
-    }
-};
+class AssetAsyncLoader;
+typedef std::shared_ptr<AssetAsyncLoader> AssetAsyncLoaderRef;
 
-//--------------------------------------------------------------
-class AssetSound : public Asset {
-public:
-    AssetSound() : Asset() {
-        type = AssetTypeSound;
-    }
-};
-
-//--------------------------------------------------------------
 class AssetAsyncLoader {
 
 public:
     
-    AssetAsyncLoader() : asset(NULL), bRunning(true) {}
+    AssetAsyncLoader() :
+    bRunning(true) {
+        //
+    }
+    
     ~AssetAsyncLoader() {
         bRunning = false;
     }
 
-    virtual void load(Asset * assetPtr) { asset = assetPtr; }
+    virtual void load(AssetRef assetRef) { asset = assetRef; }
     virtual void cancel() { asset = NULL; }
     
-    Asset * asset;
+    AssetRef asset;
     bool bRunning;
 };
 
@@ -81,44 +76,45 @@ public:
     Assets();
     ~Assets();
     
-    virtual const Asset * addAsset(std::string assetPath, AssetType assetType, std::string assetID="");
-    virtual const Asset * addAssetAndLoad(std::string assetPath, AssetType assetType, std::string assetID="");
-    virtual const Asset * addAssetAndLoadAsync(std::string assetPath, AssetType assetType, std::string assetID="");
-    virtual void removeAsset(std::string assetID);
+    virtual AssetRef addAsset(std::string assetPath, AssetType assetType, std::string assetID="");
+    virtual AssetRef addAssetAndLoad(std::string assetPath, AssetType assetType, std::string assetID="");
+    virtual AssetRef addAssetAndLoadAsync(std::string assetPath, AssetType assetType, std::string assetID="");
     
-    virtual const Asset * load(std::string assetID);
-    virtual const Asset * loadAsync(std::string assetID);
+    virtual AssetRef removeAsset(std::string assetID);
+    virtual AssetRef removeAsset(AssetRef asset);
     
-    virtual void unload(std::string assetID);
+    virtual AssetRef load(std::string assetID);
+    virtual AssetRef load(AssetRef asset);
+    
+    virtual AssetRef loadAsync(std::string assetID);
+    virtual AssetRef loadAsync(AssetRef asset);
+    
+    virtual AssetRef unload(std::string assetID);
+    virtual AssetRef unload(AssetRef asset);
     virtual void unloadAll();
     virtual void clearLoadQueue();
     
-    virtual void update(float timeDelta=0);
-    
-    const Asset * getAsset(std::string assetID) const;
+    AssetRef getAsset(std::string assetID) const;
 
     virtual bool fileExists( std::string assetPath ) { return true; }
     
+    virtual void update(float timeDelta=0);
+    
 protected:
 
-    Asset * getAssetPtr(std::string assetID) const;
-
-    virtual AssetTexture * initTexture();
-    virtual void killTexture(AssetTexture * asset);
+    virtual AssetRef initTexture() { return nullptr; }
+    virtual AssetRef initSound() { return nullptr; }
     
-    virtual AssetSound * initSound();
-    virtual void killSound(AssetSound * asset);
+    virtual void loadTexture(AssetRef asset) {}
+    virtual void unloadTexture(AssetRef asset) {}
     
-    virtual void loadTexture(std::string assetID) {}
-    virtual void unloadTexture(std::string assetID) {}
+    virtual void loadSound(AssetRef asset) {}
+    virtual void unloadSound(AssetRef asset) {}
     
-    virtual void loadSound(std::string assetID) {}
-    virtual void unloadSound(std::string assetID) {}
-    
-    std::vector<Asset *> assets;
-    std::vector<Asset *> assetLoadQueue;
-    Asset * assetLoading;
-    AssetAsyncLoader * asyncLoader;
+    std::vector<AssetRef> assets;
+    std::vector<AssetRef> assetLoadQueue;
+    AssetRef assetLoading;
+    AssetAsyncLoaderRef asyncLoader;
 };
 
 };

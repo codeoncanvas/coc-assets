@@ -21,7 +21,7 @@ namespace coc {
 
 //--------------------------------------------------------------
 AssetsCI::AssetsCI() : coc::Assets() {
-    asyncLoader = new AssetAsyncLoaderCI();
+    asyncLoader = AssetAsyncLoaderCIRef(new AssetAsyncLoaderCI());
 }
 
 AssetsCI::~AssetsCI() {
@@ -36,85 +36,102 @@ void AssetsCI::update(float timeDelta) {
 }
 
 //--------------------------------------------------------------
-const AssetTextureCI & AssetsCI::getTexture(std::string assetID) {
-    AssetTextureCI * asset = (AssetTextureCI *)getAssetPtr(assetID);
-    return *asset;
+AssetTextureRef AssetsCI::getTexture(std::string assetID) {
+    AssetRef asset = getAsset(assetID);
+    return getTexture(asset);
 }
 
-ci::gl::TextureRef AssetsCI::getTextureRef(std::string assetID) {
-    AssetTextureCI * asset = (AssetTextureCI *)getAssetPtr(assetID);
-    if(asset == NULL) {
-        return NULL;
+AssetTextureRef AssetsCI::getTexture(AssetRef asset) {
+    if(asset == nullptr) {
+        return nullptr;
     }
+    if(asset->type != AssetTypeTexture) {
+        return nullptr;
+    }
+    AssetTextureRef assetTexture = std::static_pointer_cast<AssetTexture>(asset);
+    return assetTexture;
+}
 
-    if(asset->bLoaded == false) {
-        return NULL;
-    }
+//--------------------------------------------------------------
+ci::gl::TextureRef AssetsCI::getTextureRef(std::string assetID) {
+    ci::gl::TextureRef texture = nullptr;
     
+    AssetTextureRef asset = getTexture(assetID);
+    if(asset == nullptr) {
+        return texture;
+    }
     return asset->textureRef;
 }
 
 //--------------------------------------------------------------
-AssetTexture * AssetsCI::initTexture() {
-    return new AssetTextureCI();
+AssetSoundRef AssetsCI::getSound(std::string assetID) {
+    AssetRef asset = getAsset(assetID);
+    return getSound(asset);
 }
 
-void AssetsCI::killTexture(AssetTexture * asset) {
-    delete (AssetTextureCI *)asset;
+AssetSoundRef AssetsCI::getSound(AssetRef asset) {
+    if(asset == nullptr) {
+        return nullptr;
+    }
+    if(asset->type != AssetTypeSound) {
+        return nullptr;
+    }
+    AssetSoundRef assetSound = std::static_pointer_cast<AssetSound>(asset);
+    return assetSound;
 }
 
 //--------------------------------------------------------------
-AssetSound * AssetsCI::initSound() {
-    return new AssetSoundCI();
+AssetRef AssetsCI::initTexture() {
+    return AssetTextureRef(new AssetTexture());
 }
 
-void AssetsCI::killSound(AssetSound * asset) {
-    delete (AssetSoundCI *)asset;
+AssetRef AssetsCI::initSound() {
+    return AssetSoundRef(new AssetSound());
 }
 
 //--------------------------------------------------------------
-void AssetsCI::loadTexture(std::string assetID) {
-    AssetTextureCI * asset = (AssetTextureCI *)getAssetPtr(assetID);
-    if(asset == NULL) {
+void AssetsCI::loadTexture(AssetRef asset) {
+    AssetTextureRef assetTexture = getTexture(asset);
+    if(assetTexture == nullptr) {
         return;
     }
 
-    asset->textureRef = ci::gl::Texture::create(ci::loadImage(asset->assetPath));
-    asset->bLoaded = (asset->textureRef.get() != NULL);
+    assetTexture->textureRef = ci::gl::Texture::create(ci::loadImage(assetTexture->assetPath), assetTexture->textureFormat);
+    assetTexture->bLoaded = (assetTexture->textureRef != nullptr);
 }
 
-void AssetsCI::unloadTexture(std::string assetID) {
-    AssetTextureCI * asset = (AssetTextureCI *)getAssetPtr(assetID);
-    if(asset == NULL) {
+void AssetsCI::unloadTexture(AssetRef asset) {
+    AssetTextureRef assetTexture = getTexture(asset);
+    if(assetTexture == nullptr) {
         return;
     }
     
-    asset->textureRef = NULL;
-    asset->bLoaded = false;
+    assetTexture->textureRef = nullptr;
+    assetTexture->bLoaded = false;
 }
 
 //--------------------------------------------------------------
-void AssetsCI::loadSound(std::string assetID) {
-    AssetSoundCI * asset = (AssetSoundCI *)getAssetPtr(assetID);
-    if(asset == NULL) {
+void AssetsCI::loadSound(AssetRef asset) {
+    AssetSoundRef assetSound = getSound(asset);
+    if(assetSound == nullptr) {
         return;
     }
 
-    asset->sourceFileRef = ci::audio::load(ci::app::loadAsset(asset->assetPath));
-    asset->voiceSamplePlayerNodeRef = ci::audio::Voice::create(asset->sourceFileRef);
-    asset->samplePlayerNodeRef = asset->voiceSamplePlayerNodeRef->getSamplePlayerNode();
-    asset->bLoaded = (asset->sourceFileRef.get() != NULL);
+    assetSound->sourceFileRef = ci::audio::load(ci::app::loadAsset(assetSound->assetPath));
+    assetSound->voiceSamplePlayerNodeRef = ci::audio::Voice::create(assetSound->sourceFileRef);
+    assetSound->samplePlayerNodeRef = assetSound->voiceSamplePlayerNodeRef->getSamplePlayerNode();
+    assetSound->bLoaded = (assetSound->sourceFileRef != nullptr);
 }
 
-void AssetsCI::unloadSound(std::string assetID) {
-    AssetSoundCI * asset = (AssetSoundCI *)getAssetPtr(assetID);
-    if(asset == NULL) {
+void AssetsCI::unloadSound(AssetRef asset) {
+    AssetSoundRef assetSound = getSound(asset);
+    if(assetSound == nullptr) {
         return;
     }
 
-    asset->samplePlayerNodeRef = NULL;
-    asset->voiceSamplePlayerNodeRef = NULL;
-    asset->sourceFileRef = NULL;
+    assetSound->samplePlayerNodeRef = nullptr;
+    assetSound->voiceSamplePlayerNodeRef = nullptr;
+    assetSound->sourceFileRef = nullptr;
 }
 
 //--------------------------------------------------------------
@@ -134,14 +151,14 @@ void AssetAsyncLoaderCI::loadThreadFn(ci::gl::ContextRef context) {
 
 	while(bRunning) {
 		
-        if(asset == NULL) {
+        if(asset == nullptr) {
             continue;
         }
         
-        AssetTextureCI * texture = (AssetTextureCI *)asset;
-        texture->textureRef = ci::gl::Texture::create(ci::loadImage(texture->assetPath));
-        texture->bLoaded = (texture->textureRef.get() != NULL);
-        asset = NULL;
+        AssetTextureRef assetTexture = std::static_pointer_cast<AssetTexture>(asset);
+        assetTexture->textureRef = ci::gl::Texture::create(ci::loadImage(assetTexture->assetPath), assetTexture->textureFormat);
+        assetTexture->bLoaded = (assetTexture->textureRef != nullptr);
+        asset = nullptr;
 	}
 }
 
