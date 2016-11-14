@@ -61,9 +61,6 @@ public:
         bRunning = false;
     }
 
-    virtual void load(AssetRef assetRef) { asset = assetRef; }
-    virtual void cancel() { asset = NULL; }
-    
     AssetRef asset;
     bool bRunning;
 };
@@ -113,7 +110,6 @@ protected:
     
     std::vector<AssetRef> assets;
     std::vector<AssetRef> assetLoadQueue;
-    AssetRef assetLoading;
     AssetAsyncLoaderRef asyncLoader;
 };
 
