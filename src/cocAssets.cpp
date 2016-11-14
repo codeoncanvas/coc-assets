@@ -230,7 +230,7 @@ void Assets::update(float timeDelta) {
     
         AssetRef assetToLoad = assetLoadQueue[0];
         assetLoadQueue.erase(assetLoadQueue.begin());
-        asyncLoader->asset = assetToLoad;
+        asyncLoader->asset = assetToLoad.get();
     }
 
     for(int i=0; i<assets.size(); i++) {

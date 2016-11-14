@@ -53,7 +53,8 @@ class AssetAsyncLoader {
 public:
     
     AssetAsyncLoader() :
-    bRunning(true) {
+    bRunning(true),
+    asset(NULL) {
         //
     }
     
@@ -61,8 +62,8 @@ public:
         bRunning = false;
     }
 
-    AssetRef asset;
     bool bRunning;
+    Asset * asset;
 };
 
 //--------------------------------------------------------------

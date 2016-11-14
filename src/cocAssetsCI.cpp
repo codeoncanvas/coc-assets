@@ -151,14 +151,12 @@ void AssetAsyncLoaderCI::loadThreadFn(ci::gl::ContextRef context) {
 
 	while(bRunning) {
 		
-        if(asset == nullptr) {
-            continue;
+        if(asset) {
+            AssetTexture * assetTexture = (AssetTexture *)asset;
+            assetTexture->textureRef = ci::gl::Texture::create(ci::loadImage(assetTexture->assetPath), assetTexture->textureFormat);
+            assetTexture->bLoaded = (assetTexture->textureRef != nullptr);
+            asset = NULL;
         }
-        
-        AssetTextureRef assetTexture = std::static_pointer_cast<AssetTexture>(asset);
-        assetTexture->textureRef = ci::gl::Texture::create(ci::loadImage(assetTexture->assetPath), assetTexture->textureFormat);
-        assetTexture->bLoaded = (assetTexture->textureRef != nullptr);
-        asset = nullptr;
 	}
 }
 
