@@ -27,7 +27,7 @@ Assets::~Assets() {
 //--------------------------------------------------------------
 AssetRef Assets::addAsset(std::string assetPath, AssetType assetType, std::string assetID) {
 
-    AssetRef asset = getAsset(assetID);
+    AssetRef asset = getAssetByPath(assetPath);
     if(asset != nullptr) {
         return asset;   // asset with that ID already exists, do not add again.
     }
@@ -76,7 +76,7 @@ AssetRef Assets::addAssetAndLoadAsync(std::string assetPath, AssetType assetType
 
 //--------------------------------------------------------------
 AssetRef Assets::removeAsset(std::string assetID) {
-    AssetRef asset = getAsset(assetID);
+    AssetRef asset = getAssetByID(assetID);
     return removeAsset(asset);
 }
 
@@ -99,48 +99,64 @@ AssetRef Assets::removeAsset(AssetRef asset) {
 }
 
 //--------------------------------------------------------------
-AssetRef Assets::load(std::string assetID) {
-    AssetRef asset = getAsset(assetID);
-    return load(asset);
+AssetRef Assets::load(std::string assetID, bool bForceReload) {
+    AssetRef asset = getAssetByID(assetID);
+    return load(asset, bForceReload);
 }
 
-AssetRef Assets::load(AssetRef asset) {
+AssetRef Assets::load(AssetRef asset, bool bForceReload) {
     if(asset == nullptr) {
         return asset;
     }
-    if(asset->bLoaded == true) {
+    
+    bool bLoad = true;
+    bLoad = bLoad && (asset->bLoaded == false);
+    bLoad = bLoad || bForceReload;
+    if(bLoad == false) {
         return asset;
     }
+    
     if(asset->type == AssetTypeTexture) {
         loadTexture(asset);
     } else if(asset->type == AssetTypeSound) {
         loadSound(asset);
     }
+    
     return asset;
 }
 
 //--------------------------------------------------------------
-AssetRef Assets::loadAsync(std::string assetID) {
-    AssetRef asset = getAsset(assetID);
-    return loadAsync(asset);
+AssetRef Assets::loadAsync(std::string assetID, bool bForceReload) {
+    AssetRef asset = getAssetByID(assetID);
+    return loadAsync(asset, bForceReload);
 }
 
-AssetRef Assets::loadAsync(AssetRef asset) {
+AssetRef Assets::loadAsync(AssetRef asset, bool bForceReload) {
     if(asset == nullptr) {
         return asset;
     }
+    
     if(asset->type != AssetTypeTexture) {
         // async loading only applied to gl textures.
         // other asset types like audio or video already handle async loading.
         return asset;
     }
+    
+    bool bLoad = true;
+    bLoad = bLoad && (asset->bLoaded == false);
+    bLoad = bLoad || bForceReload;
+    if(bLoad == false) {
+        return asset;
+    }
+    
     assetLoadQueue.push_back(asset);
+    
     return asset;
 }
 
 //--------------------------------------------------------------
 AssetRef Assets::unload(std::string assetID) {
-    AssetRef asset = getAsset(assetID);
+    AssetRef asset = getAssetByID(assetID);
     return unload(asset);
 }
 
@@ -196,9 +212,18 @@ void Assets::clearLoadQueue() {
 }
 
 //--------------------------------------------------------------
-AssetRef Assets::getAsset(std::string assetID) const {
+AssetRef Assets::getAssetByID(std::string assetID) const {
     for(int i=0; i<assets.size(); i++) {
         if(assets[i]->assetID == assetID) {
+            return assets[i];
+        }
+    }
+    return nullptr;
+}
+
+AssetRef Assets::getAssetByPath(std::string assetPath) const {
+    for(int i=0; i<assets.size(); i++) {
+        if(assets[i]->assetPath == assetPath) {
             return assets[i];
         }
     }

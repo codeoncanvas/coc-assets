@@ -83,18 +83,19 @@ public:
     virtual AssetRef removeAsset(std::string assetID);
     virtual AssetRef removeAsset(AssetRef asset);
     
-    virtual AssetRef load(std::string assetID);
-    virtual AssetRef load(AssetRef asset);
+    virtual AssetRef load(std::string assetID, bool bForceReload=false);
+    virtual AssetRef load(AssetRef asset, bool bForceReload=false);
     
-    virtual AssetRef loadAsync(std::string assetID);
-    virtual AssetRef loadAsync(AssetRef asset);
+    virtual AssetRef loadAsync(std::string assetID, bool bForceReload=false);
+    virtual AssetRef loadAsync(AssetRef asset, bool bForceReload=false);
     
     virtual AssetRef unload(std::string assetID);
     virtual AssetRef unload(AssetRef asset);
     virtual void unloadAll();
     virtual void clearLoadQueue();
     
-    AssetRef getAsset(std::string assetID) const;
+    AssetRef getAssetByID(std::string assetID) const;
+    AssetRef getAssetByPath(std::string assetPath) const;
 
     virtual bool fileExists( std::string assetPath ) { return true; }
     

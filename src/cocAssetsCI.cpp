@@ -37,7 +37,7 @@ void AssetsCI::update(float timeDelta) {
 
 //--------------------------------------------------------------
 AssetTextureRef AssetsCI::getTexture(std::string assetID) {
-    AssetRef asset = getAsset(assetID);
+    AssetRef asset = getAssetByID(assetID);
     return getTexture(asset);
 }
 
@@ -65,7 +65,7 @@ ci::gl::TextureRef AssetsCI::getTextureRef(std::string assetID) {
 
 //--------------------------------------------------------------
 AssetSoundRef AssetsCI::getSound(std::string assetID) {
-    AssetRef asset = getAsset(assetID);
+    AssetRef asset = getAssetByID(assetID);
     return getSound(asset);
 }
 
