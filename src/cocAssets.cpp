@@ -166,14 +166,6 @@ AssetRef Assets::unload(AssetRef asset) {
     }
     
     //----------------------------------------------------------
-    // if asset is loading, stop it.
-    //----------------------------------------------------------
-    if(assetLoading == asset) {
-        asyncLoader->cancel();
-        assetLoading = nullptr;
-    }
-
-    //----------------------------------------------------------
     // remove asset from load queue.
     //----------------------------------------------------------
     for(int i=0; i<assetLoadQueue.size(); i++) {
@@ -207,8 +199,6 @@ void Assets::unloadAll() {
 
 void Assets::clearLoadQueue() {
     assetLoadQueue.clear();
-    asyncLoader->cancel();
-    assetLoading = nullptr;
 }
 
 //--------------------------------------------------------------
@@ -233,23 +223,14 @@ AssetRef Assets::getAssetByPath(std::string assetPath) const {
 //--------------------------------------------------------------
 void Assets::update(float timeDelta) {
 
-    bool bLoadingAsync = true;
-    bLoadingAsync = bLoadingAsync && (assetLoading != nullptr);
-    if(bLoadingAsync) {
-        if(assetLoading->bLoaded == true) { // finished loading.
-            assetLoading = nullptr;
-        }
-    }
-
     bool bLoadAsync = true;
-    bLoadAsync = bLoadAsync && (asyncLoader != nullptr);
-    bLoadAsync = bLoadAsync && (assetLoading == nullptr);
+    bLoadAsync = bLoadAsync && (asyncLoader->asset == nullptr);
     bLoadAsync = bLoadAsync && (assetLoadQueue.size() > 0);
     if(bLoadAsync) {
     
-        assetLoading = assetLoadQueue[0];
+        AssetRef assetToLoad = assetLoadQueue[0];
         assetLoadQueue.erase(assetLoadQueue.begin());
-        asyncLoader->load(assetLoading);
+        asyncLoader->asset = assetToLoad;
     }
 
     for(int i=0; i<assets.size(); i++) {
