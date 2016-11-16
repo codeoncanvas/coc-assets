@@ -16,6 +16,7 @@
 #include "cocAssets.h"
 #include "cinder/gl/gl.h"
 #include "cinder/audio/audio.h"
+#include "cinder/ConcurrentCircularBuffer.h"
 
 #if defined( COC_CI )
 
@@ -53,6 +54,23 @@ public:
 };
 
 //--------------------------------------------------------------
+class AssetAsyncLoaderCI;
+typedef std::shared_ptr<AssetAsyncLoaderCI> AssetAsyncLoaderCIRef;
+
+class AssetAsyncLoaderCI : public AssetAsyncLoader {
+
+public:
+
+    AssetAsyncLoaderCI();
+    ~AssetAsyncLoaderCI();
+
+    void loadThreadFn(ci::gl::ContextRef context);
+
+	std::shared_ptr<std::thread> thread;
+    ci::ConcurrentCircularBuffer<ci::gl::TextureRef> textures;
+};
+
+//--------------------------------------------------------------
 class AssetsCI : public coc::Assets {
 
 public:
@@ -61,6 +79,9 @@ public:
     ~AssetsCI();
     
     void update(float timeDelta=0) override;
+    void updateAsyncLoader(float timeDelta=0) override;
+    
+    AssetAsyncLoaderCIRef getAsyncLoader() { return std::static_pointer_cast<AssetAsyncLoaderCI>(asyncLoader); }
     
     AssetTextureRef getTexture(std::string assetID);
     AssetTextureRef getTexture(AssetRef asset);
@@ -82,22 +103,6 @@ protected:
     void loadSound(AssetRef asset) override;
     void unloadSound(AssetRef asset) override;
     
-};
-
-//--------------------------------------------------------------
-class AssetAsyncLoaderCI;
-typedef std::shared_ptr<AssetAsyncLoaderCI> AssetAsyncLoaderCIRef;
-
-class AssetAsyncLoaderCI : public AssetAsyncLoader {
-
-public:
-
-    AssetAsyncLoaderCI();
-    ~AssetAsyncLoaderCI();
-
-    void loadThreadFn(ci::gl::ContextRef context);
-
-	std::shared_ptr<std::thread> thread;
 };
 
 };

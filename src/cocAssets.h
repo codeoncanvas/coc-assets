@@ -98,6 +98,7 @@ public:
     virtual bool fileExists( std::string assetPath ) { return true; }
     
     virtual void update(float timeDelta=0);
+    virtual void updateAsyncLoader(float timeDelta=0);
     
 protected:
 
@@ -113,6 +114,8 @@ protected:
     std::vector<AssetRef> assets;
     std::vector<AssetRef> assetLoadQueue;
     AssetAsyncLoaderRef asyncLoader;
+    AssetRef assetLoading;
+    bool bLoading;
 };
 
 };

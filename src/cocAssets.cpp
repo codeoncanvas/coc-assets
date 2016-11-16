@@ -16,7 +16,8 @@
 namespace coc {
 
 //--------------------------------------------------------------
-Assets::Assets() {
+Assets::Assets():
+bLoading(false) {
     //
 }
 
@@ -33,7 +34,7 @@ AssetRef Assets::addAsset(std::string assetPath, AssetType assetType, std::strin
     }
     
     if(fileExists(assetPath) == false) { // check if asset exists.
-        return asset;
+        return nullptr;
     }
     
     if(assetType == AssetTypeTexture) {
@@ -41,7 +42,7 @@ AssetRef Assets::addAsset(std::string assetPath, AssetType assetType, std::strin
     } else if(assetType == AssetTypeSound) {
         asset = initSound();
     } else {
-        return asset;
+        return nullptr;
     }
     
     asset->type = assetType;
@@ -174,6 +175,9 @@ AssetRef Assets::unload(AssetRef asset) {
             break;
         }
     }
+    if(assetLoading == asset) {
+        assetLoading = nullptr;
+    }
 
     //----------------------------------------------------------
     // unload asset.
@@ -199,6 +203,7 @@ void Assets::unloadAll() {
 
 void Assets::clearLoadQueue() {
     assetLoadQueue.clear();
+    assetLoading = nullptr;
 }
 
 //--------------------------------------------------------------
@@ -223,15 +228,7 @@ AssetRef Assets::getAssetByPath(std::string assetPath) const {
 //--------------------------------------------------------------
 void Assets::update(float timeDelta) {
 
-    bool bLoadAsync = true;
-    bLoadAsync = bLoadAsync && (asyncLoader->asset == nullptr);
-    bLoadAsync = bLoadAsync && (assetLoadQueue.size() > 0);
-    if(bLoadAsync) {
-    
-        AssetRef assetToLoad = assetLoadQueue[0];
-        assetLoadQueue.erase(assetLoadQueue.begin());
-        asyncLoader->asset = assetToLoad.get();
-    }
+    updateAsyncLoader(timeDelta);
 
     for(int i=0; i<assets.size(); i++) {
         Asset & asset = *assets[i];
@@ -242,6 +239,10 @@ void Assets::update(float timeDelta) {
         
         //
     }
+}
+
+void Assets::updateAsyncLoader(float timeDelta) {
+    //
 }
 
 };
