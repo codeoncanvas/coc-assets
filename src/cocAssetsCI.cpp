@@ -24,7 +24,7 @@ using namespace std;
 
 //--------------------------------------------------------------
 AssetsCI::AssetsCI() : coc::Assets() {
-    asyncLoader = AssetAsyncLoaderCIRef(new AssetAsyncLoaderCI());
+    //
 }
 
 AssetsCI::~AssetsCI() {
@@ -39,6 +39,17 @@ void AssetsCI::update(float timeDelta) {
 }
 
 void AssetsCI::updateAsyncLoader(float timeDelta) {
+
+    bool bInitAsyncLoader = true;
+    bInitAsyncLoader = bInitAsyncLoader && (asyncLoader == nullptr);
+    bInitAsyncLoader = bInitAsyncLoader && (assetLoadQueue.size() > 0);
+    if(bInitAsyncLoader) {
+        asyncLoader = AssetAsyncLoaderCIRef(new AssetAsyncLoaderCI());
+    }
+    
+    if(asyncLoader == nullptr) {
+        return;
+    }
 
     AssetAsyncLoaderCIRef asyncLoader = getAsyncLoader();
 
