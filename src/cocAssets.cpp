@@ -17,7 +17,8 @@ namespace coc {
 
 //--------------------------------------------------------------
 Assets::Assets():
-bLoading(false) {
+bLoading(false),
+bVerbose(false) {
     //
 }
 

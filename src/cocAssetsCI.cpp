@@ -222,15 +222,16 @@ void AssetAsyncLoaderCI::loadThreadFn(gl::ContextRef context) {
 
 //--------------------------------------------------------------
 
-bool AssetsCI::fileExists( string assetPath )
-{
-    if (!assetPath.length()) {
-        CI_LOG_E("Asset path is empty!");
-        return false;
+bool AssetsCI::fileExists( string assetPath ) {
+
+    bool bFileExists = (assetPath.length() > 0);
+    if(bFileExists) {
+        bFileExists = fs::exists( assetPath );
     }
-    bool result = fs::exists( assetPath );
-    if (!result) {
-        CI_LOG_E("Asset does not exist! " << assetPath );
+    if(bFileExists == false) {
+        if(bVerbose) {
+            CI_LOG_E("Asset does not exist! " << assetPath );
+        }
         return false;
     }
     return true;

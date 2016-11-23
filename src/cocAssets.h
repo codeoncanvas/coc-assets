@@ -94,8 +94,9 @@ public:
     
     AssetRef getAssetByID(std::string assetID) const;
     AssetRef getAssetByPath(std::string assetPath) const;
-
+    
     virtual bool fileExists( std::string assetPath ) { return true; }
+    void setVerbose(bool value) { bVerbose = value; }
     
     virtual void update(float timeDelta=0);
     virtual void updateAsyncLoader(float timeDelta=0);
@@ -116,6 +117,7 @@ protected:
     AssetAsyncLoaderRef asyncLoader;
     AssetRef assetLoading;
     bool bLoading;
+    bool bVerbose;
 };
 
 };
