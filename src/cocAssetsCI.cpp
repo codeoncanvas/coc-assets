@@ -19,9 +19,12 @@
 
 namespace coc {
 
+using namespace ci;
+using namespace std;
+
 //--------------------------------------------------------------
 AssetsCI::AssetsCI() : coc::Assets() {
-    asyncLoader = new AssetAsyncLoaderCI();
+    //
 }
 
 AssetsCI::~AssetsCI() {
@@ -35,86 +38,140 @@ void AssetsCI::update(float timeDelta) {
     //
 }
 
-//--------------------------------------------------------------
-const AssetTextureCI & AssetsCI::getTexture(std::string assetID) {
-    AssetTextureCI * asset = (AssetTextureCI *)getAssetPtr(assetID);
-    return *asset;
-}
+void AssetsCI::updateAsyncLoader(float timeDelta) {
 
-ci::gl::TextureRef AssetsCI::getTextureRef(std::string assetID) {
-    AssetTextureCI * asset = (AssetTextureCI *)getAssetPtr(assetID);
-    if(asset == NULL) {
-        return NULL;
-    }
-
-    if(asset->bLoaded == false) {
-        return NULL;
+    bool bInitAsyncLoader = true;
+    bInitAsyncLoader = bInitAsyncLoader && (asyncLoader == nullptr);
+    bInitAsyncLoader = bInitAsyncLoader && (assetLoadQueue.size() > 0);
+    if(bInitAsyncLoader) {
+        asyncLoader = AssetAsyncLoaderCIRef(new AssetAsyncLoaderCI());
     }
     
+    if(asyncLoader == nullptr) {
+        return;
+    }
+
+    AssetAsyncLoaderCIRef asyncLoader = getAsyncLoader();
+
+    bool bLoaded = true;
+    bLoaded = bLoaded && bLoading;
+    bLoaded = bLoaded && asyncLoader->textures.isNotEmpty();
+    if(bLoaded) {
+        if(assetLoading) {
+            AssetTextureRef assetLoaded = getTexture(assetLoading);
+            asyncLoader->textures.popBack( &assetLoaded->textureRef );
+            assetLoaded->bLoaded = (assetLoaded->textureRef != nullptr);
+            assetLoading = nullptr;
+        }
+        bLoading = false;
+    }
+    
+    bool bLoad = true;
+    bLoad = bLoad && (bLoading == false);
+    bLoad = bLoad && (assetLoadQueue.size() > 0);
+    if(bLoad) {
+        bLoading = true;
+        assetLoading = assetLoadQueue[0];
+        assetLoadQueue.erase(assetLoadQueue.begin());
+        asyncLoader->asset = assetLoading.get();
+    }
+}
+
+//--------------------------------------------------------------
+AssetTextureRef AssetsCI::getTexture(string assetID) {
+    AssetRef asset = getAssetByID(assetID);
+    return getTexture(asset);
+}
+
+AssetTextureRef AssetsCI::getTexture(AssetRef asset) {
+    if(asset == nullptr) {
+        return nullptr;
+    }
+    if(asset->type != AssetTypeTexture) {
+        return nullptr;
+    }
+    AssetTextureRef assetTexture = static_pointer_cast<AssetTexture>(asset);
+    return assetTexture;
+}
+
+//--------------------------------------------------------------
+gl::TextureRef AssetsCI::getTextureRef(string assetID) {
+    gl::TextureRef texture = nullptr;
+    
+    AssetTextureRef asset = getTexture(assetID);
+    if(asset == nullptr) {
+        return texture;
+    }
     return asset->textureRef;
 }
 
 //--------------------------------------------------------------
-AssetTexture * AssetsCI::initTexture() {
-    return new AssetTextureCI();
+AssetSoundRef AssetsCI::getSound(string assetID) {
+    AssetRef asset = getAssetByID(assetID);
+    return getSound(asset);
 }
 
-void AssetsCI::killTexture(AssetTexture * asset) {
-    delete (AssetTextureCI *)asset;
+AssetSoundRef AssetsCI::getSound(AssetRef asset) {
+    if(asset == nullptr) {
+        return nullptr;
+    }
+    if(asset->type != AssetTypeSound) {
+        return nullptr;
+    }
+    AssetSoundRef assetSound = static_pointer_cast<AssetSound>(asset);
+    return assetSound;
 }
 
 //--------------------------------------------------------------
-AssetSound * AssetsCI::initSound() {
-    return new AssetSoundCI();
+AssetRef AssetsCI::initTexture() {
+    return AssetTextureRef(new AssetTexture());
 }
 
-void AssetsCI::killSound(AssetSound * asset) {
-    delete (AssetSoundCI *)asset;
+AssetRef AssetsCI::initSound() {
+    return AssetSoundRef(new AssetSound());
 }
 
 //--------------------------------------------------------------
-void AssetsCI::loadTexture(std::string assetID) {
-    AssetTextureCI * asset = (AssetTextureCI *)getAssetPtr(assetID);
-    if(asset == NULL) {
+void AssetsCI::loadTexture(AssetRef asset) {
+    AssetTextureRef assetTexture = getTexture(asset);
+    if(assetTexture == nullptr) {
         return;
     }
     
     try {
         
-        asset->textureRef = ci::gl::Texture::create(ci::loadImage(asset->assetPath));
-        asset->bLoaded = (asset->textureRef.get() != NULL);
+        assetTexture->textureRef = gl::Texture::create(loadImage(assetTexture->assetPath), assetTexture->textureFormat);
+        assetTexture->bLoaded = (assetTexture->textureRef != nullptr);
         
     } catch( ci::Exception &exc ) {
     
         std::cout << "AssetsCI::loadTexture failed, what: " << exc.what() << std::endl;
     }
-    
-
 }
 
-void AssetsCI::unloadTexture(std::string assetID) {
-    AssetTextureCI * asset = (AssetTextureCI *)getAssetPtr(assetID);
-    if(asset == NULL) {
+void AssetsCI::unloadTexture(AssetRef asset) {
+    AssetTextureRef assetTexture = getTexture(asset);
+    if(assetTexture == nullptr) {
         return;
     }
     
-    asset->textureRef = NULL;
-    asset->bLoaded = false;
+    assetTexture->textureRef = nullptr;
+    assetTexture->bLoaded = false;
 }
 
 //--------------------------------------------------------------
-void AssetsCI::loadSound(std::string assetID) {
-    AssetSoundCI * asset = (AssetSoundCI *)getAssetPtr(assetID);
-    if(asset == NULL) {
+void AssetsCI::loadSound(AssetRef asset) {
+    AssetSoundRef assetSound = getSound(asset);
+    if(assetSound == nullptr) {
         return;
     }
-    
+
     try {
         
-        asset->sourceFileRef = ci::audio::load(ci::app::loadAsset(asset->assetPath));
-        asset->voiceSamplePlayerNodeRef = ci::audio::Voice::create(asset->sourceFileRef);
-        asset->samplePlayerNodeRef = asset->voiceSamplePlayerNodeRef->getSamplePlayerNode();
-        asset->bLoaded = (asset->sourceFileRef.get() != NULL);
+        assetSound->sourceFileRef = audio::load(app::loadAsset(assetSound->assetPath));
+        assetSound->voiceSamplePlayerNodeRef = audio::Voice::create(assetSound->sourceFileRef);
+        assetSound->samplePlayerNodeRef = assetSound->voiceSamplePlayerNodeRef->getSamplePlayerNode();
+        assetSound->bLoaded = (assetSound->sourceFileRef != nullptr);
         
     } catch( ci::Exception &exc ) {
     
@@ -122,56 +179,73 @@ void AssetsCI::loadSound(std::string assetID) {
     }
 }
 
-void AssetsCI::unloadSound(std::string assetID) {
-    AssetSoundCI * asset = (AssetSoundCI *)getAssetPtr(assetID);
-    if(asset == NULL) {
+void AssetsCI::unloadSound(AssetRef asset) {
+    AssetSoundRef assetSound = getSound(asset);
+    if(assetSound == nullptr) {
         return;
     }
 
-    asset->samplePlayerNodeRef = NULL;
-    asset->voiceSamplePlayerNodeRef = NULL;
-    asset->sourceFileRef = NULL;
+    assetSound->samplePlayerNodeRef = nullptr;
+    assetSound->voiceSamplePlayerNodeRef = nullptr;
+    assetSound->sourceFileRef = nullptr;
 }
 
 //--------------------------------------------------------------
-AssetAsyncLoaderCI::AssetAsyncLoaderCI() : AssetAsyncLoader() {
-    ci::gl::ContextRef backgroundCtx = ci::gl::Context::create( ci::gl::context() );
-	thread = std::shared_ptr<std::thread>( new std::thread( bind( &AssetAsyncLoaderCI::loadThreadFn, this, backgroundCtx ) ) );
+AssetAsyncLoaderCI::AssetAsyncLoaderCI() :
+AssetAsyncLoader(),
+textures(1) {
+
+    gl::ContextRef backgroundCtx = gl::Context::create( gl::context() );
+	thread = shared_ptr<std::thread>( new std::thread( bind( &AssetAsyncLoaderCI::loadThreadFn, this, backgroundCtx ) ) );
 }
 
 AssetAsyncLoaderCI::~AssetAsyncLoaderCI() {
+    
+    textures.cancel();
     thread->join();
 }
 
-void AssetAsyncLoaderCI::loadThreadFn(ci::gl::ContextRef context) {
+void AssetAsyncLoaderCI::loadThreadFn(gl::ContextRef context) {
 
-	ci::ThreadSetup threadSetup;
+	ThreadSetup threadSetup;
 	context->makeCurrent();
 
 	while(bRunning) {
 		
-        if(asset == NULL) {
-            continue;
+        if(asset) {
+            try {
+                AssetTexture * assetTexture = (AssetTexture *)asset;
+                string texturePath = assetTexture->assetPath;
+                gl::Texture::Format textureFormat = assetTexture->textureFormat;
+                
+                ImageSourceRef textureSrc = loadImage(texturePath);
+                gl::TextureRef texture = gl::Texture::create(textureSrc, textureFormat);
+                
+                auto fence = gl::Sync::create();
+                fence->clientWaitSync();
+                
+                textures.pushFront(texture);
+
+            } catch( ci::Exception &exc ) {
+            
+                //
+            }
         }
-        
-        AssetTextureCI * texture = (AssetTextureCI *)asset;
-        texture->textureRef = ci::gl::Texture::create(ci::loadImage(texture->assetPath));
-        texture->bLoaded = (texture->textureRef.get() != NULL);
-        asset = NULL;
 	}
 }
 
 //--------------------------------------------------------------
 
-bool AssetsCI::fileExists( std::string assetPath )
-{
-    if (!assetPath.length()) {
-        CI_LOG_E("Asset path is empty!");
-        return false;
+bool AssetsCI::fileExists( string assetPath ) {
+
+    bool bFileExists = (assetPath.length() > 0);
+    if(bFileExists) {
+        bFileExists = fs::exists( assetPath );
     }
-    bool result = ci::fs::exists( assetPath );
-    if (!result) {
-        CI_LOG_E("Asset does not exist! " << assetPath );
+    if(bFileExists == false) {
+        if(bVerbose) {
+            CI_LOG_E("Asset does not exist! " << assetPath );
+        }
         return false;
     }
     return true;

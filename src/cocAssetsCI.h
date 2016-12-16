@@ -16,33 +16,58 @@
 #include "cocAssets.h"
 #include "cinder/gl/gl.h"
 #include "cinder/audio/audio.h"
+#include "cinder/ConcurrentCircularBuffer.h"
 
 #if defined( COC_CI )
 
 namespace coc {
 
 //--------------------------------------------------------------
-class AssetTextureCI : public AssetTexture {
+class AssetTexture;
+typedef std::shared_ptr<AssetTexture> AssetTextureRef;
+
+class AssetTexture : public Asset {
 public:
-    AssetTextureCI() : AssetTexture() {
-        //
+    AssetTexture() :
+    Asset() {
+        type = AssetTypeTexture;
     }
     
+    ci::gl::Texture::Format textureFormat;
     ci::gl::TextureRef textureRef;
 };
 
 //--------------------------------------------------------------
-class AssetSoundCI : public AssetSound {
+class AssetSound;
+typedef std::shared_ptr<AssetSound> AssetSoundRef;
 
+class AssetSound : public Asset {
 public:
-
-    AssetSoundCI() : AssetSound() {
-            //
+    AssetSound() :
+    Asset() {
+        type = AssetTypeSound;
     }
     
     ci::audio::SourceFileRef sourceFileRef;
     ci::audio::VoiceSamplePlayerNodeRef voiceSamplePlayerNodeRef;
     ci::audio::SamplePlayerNodeRef samplePlayerNodeRef;
+};
+
+//--------------------------------------------------------------
+class AssetAsyncLoaderCI;
+typedef std::shared_ptr<AssetAsyncLoaderCI> AssetAsyncLoaderCIRef;
+
+class AssetAsyncLoaderCI : public AssetAsyncLoader {
+
+public:
+
+    AssetAsyncLoaderCI();
+    ~AssetAsyncLoaderCI();
+
+    void loadThreadFn(ci::gl::ContextRef context);
+
+	std::shared_ptr<std::thread> thread;
+    ci::ConcurrentCircularBuffer<ci::gl::TextureRef> textures;
 };
 
 //--------------------------------------------------------------
@@ -54,39 +79,30 @@ public:
     ~AssetsCI();
     
     void update(float timeDelta=0) override;
+    void updateAsyncLoader(float timeDelta=0) override;
     
-    const AssetTextureCI & getTexture(std::string assetID);
+    AssetAsyncLoaderCIRef getAsyncLoader() { return std::static_pointer_cast<AssetAsyncLoaderCI>(asyncLoader); }
+    
+    AssetTextureRef getTexture(std::string assetID);
+    AssetTextureRef getTexture(AssetRef asset);
     ci::gl::TextureRef getTextureRef(std::string assetID);
+    
+    AssetSoundRef getSound(std::string assetID);
+    AssetSoundRef getSound(AssetRef asset);
 
-	bool fileExists( std::string assetPath) override;
+	bool fileExists(std::string assetPath) override;
     
 protected:
 
-    AssetTexture * initTexture() override;
-    void killTexture(AssetTexture * asset) override;
-
-    AssetSound * initSound() override;
-    void killSound(AssetSound * asset) override;
+    AssetRef initTexture() override;
+    AssetRef initSound() override;
     
-    void loadTexture(std::string assetID) override;
-    void unloadTexture(std::string assetID) override;
+    void loadTexture(AssetRef asset) override;
+    void unloadTexture(AssetRef asset) override;
     
-    void loadSound(std::string assetID) override;
-    void unloadSound(std::string assetID) override;
+    void loadSound(AssetRef asset) override;
+    void unloadSound(AssetRef asset) override;
     
-};
-
-//--------------------------------------------------------------
-class AssetAsyncLoaderCI : public AssetAsyncLoader {
-
-public:
-
-    AssetAsyncLoaderCI();
-    ~AssetAsyncLoaderCI();
-
-    void loadThreadFn(ci::gl::ContextRef context);
-
-	std::shared_ptr<std::thread> thread;
 };
 
 };
