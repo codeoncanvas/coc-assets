@@ -78,9 +78,18 @@ void AssetsCI::loadTexture(std::string assetID) {
     if(asset == NULL) {
         return;
     }
+    
+    try {
+        
+        asset->textureRef = ci::gl::Texture::create(ci::loadImage(asset->assetPath));
+        asset->bLoaded = (asset->textureRef.get() != NULL);
+        
+    } catch( ci::Exception &exc ) {
+    
+        std::cout << "AssetsCI::loadTexture failed, what: " << exc.what() << std::endl;
+    }
+    
 
-    asset->textureRef = ci::gl::Texture::create(ci::loadImage(asset->assetPath));
-    asset->bLoaded = (asset->textureRef.get() != NULL);
 }
 
 void AssetsCI::unloadTexture(std::string assetID) {
@@ -99,11 +108,18 @@ void AssetsCI::loadSound(std::string assetID) {
     if(asset == NULL) {
         return;
     }
-
-    asset->sourceFileRef = ci::audio::load(ci::app::loadAsset(asset->assetPath));
-    asset->voiceSamplePlayerNodeRef = ci::audio::Voice::create(asset->sourceFileRef);
-    asset->samplePlayerNodeRef = asset->voiceSamplePlayerNodeRef->getSamplePlayerNode();
-    asset->bLoaded = (asset->sourceFileRef.get() != NULL);
+    
+    try {
+        
+        asset->sourceFileRef = ci::audio::load(ci::app::loadAsset(asset->assetPath));
+        asset->voiceSamplePlayerNodeRef = ci::audio::Voice::create(asset->sourceFileRef);
+        asset->samplePlayerNodeRef = asset->voiceSamplePlayerNodeRef->getSamplePlayerNode();
+        asset->bLoaded = (asset->sourceFileRef.get() != NULL);
+        
+    } catch( ci::Exception &exc ) {
+    
+        std::cout << "AssetsCI::loadSound failed, what: " << exc.what() << std::endl;
+    }
 }
 
 void AssetsCI::unloadSound(std::string assetID) {
