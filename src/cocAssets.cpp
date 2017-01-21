@@ -27,7 +27,7 @@ Assets::~Assets() {
 }
 
 //--------------------------------------------------------------
-AssetRef Assets::addAsset(std::string assetPath, AssetType assetType, std::string assetID) {
+AssetRef Assets::addAsset(std::string assetPath, AssetType assetType, std::string assetID, std::string groupID) {
 
     AssetRef asset = getAssetByPath(assetPath);
     if(asset != nullptr) {
@@ -49,6 +49,7 @@ AssetRef Assets::addAsset(std::string assetPath, AssetType assetType, std::strin
     asset->type = assetType;
     asset->assetPath = assetPath;
     asset->assetID = assetID;
+    asset->groupID = groupID;
     if(asset->assetID.length() == 0) {
         asset->assetID = asset->assetPath;
     }
@@ -58,8 +59,8 @@ AssetRef Assets::addAsset(std::string assetPath, AssetType assetType, std::strin
     return asset;
 }
 
-AssetRef Assets::addAssetAndLoad(std::string assetPath, AssetType assetType, std::string assetID) {
-    AssetRef asset = addAsset(assetPath, assetType, assetID);
+AssetRef Assets::addAssetAndLoad(std::string assetPath, AssetType assetType, std::string assetID, std::string groupID) {
+    AssetRef asset = addAsset(assetPath, assetType, assetID, groupID);
     if(asset == nullptr) {
         return asset;
     }
@@ -67,8 +68,8 @@ AssetRef Assets::addAssetAndLoad(std::string assetPath, AssetType assetType, std
     return asset;
 }
 
-AssetRef Assets::addAssetAndLoadAsync(std::string assetPath, AssetType assetType, std::string assetID) {
-    AssetRef asset = addAsset(assetPath, assetType, assetID);
+AssetRef Assets::addAssetAndLoadAsync(std::string assetPath, AssetType assetType, std::string assetID, std::string groupID) {
+    AssetRef asset = addAsset(assetPath, assetType, assetID, groupID);
     if(asset == nullptr) {
         return asset;
     }
@@ -98,6 +99,18 @@ AssetRef Assets::removeAsset(AssetRef asset) {
     }
     
     return asset;
+}
+
+void Assets::removeGroup(std::string groupID) {
+    for(int i=0; i<assets.size(); i++) {
+        if(assets[i]->groupID != groupID) {
+            continue;
+        }
+        
+        unload(assets[i]);
+        
+        assets.erase(assets.begin() + i--);
+    }
 }
 
 //--------------------------------------------------------------
@@ -196,6 +209,15 @@ AssetRef Assets::unload(AssetRef asset) {
 }
 
 //--------------------------------------------------------------
+void Assets::unloadGroup(std::string groupID) {
+    for(int i=0; i<assets.size(); i++) {
+        if(assets[i]->groupID != groupID) {
+            continue;
+        }
+        unload(assets[i]);
+    }
+}
+
 void Assets::unloadAll() {
     for(int i=0; i<assets.size(); i++) {
         unload(assets[i]);

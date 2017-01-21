@@ -35,12 +35,14 @@ public:
         type = AssetTypeNone;
         assetPath = "";
         assetID = "";
+        groupID = "";
         bLoaded = false;
     }
     
     AssetType type;
     std::string assetPath;
     std::string assetID;
+    std::string groupID;
     bool bLoaded;
 };
 
@@ -74,12 +76,13 @@ public:
     Assets();
     ~Assets();
     
-    virtual AssetRef addAsset(std::string assetPath, AssetType assetType, std::string assetID="");
-    virtual AssetRef addAssetAndLoad(std::string assetPath, AssetType assetType, std::string assetID="");
-    virtual AssetRef addAssetAndLoadAsync(std::string assetPath, AssetType assetType, std::string assetID="");
+    virtual AssetRef addAsset(std::string assetPath, AssetType assetType, std::string assetID="", std::string groupID="");
+    virtual AssetRef addAssetAndLoad(std::string assetPath, AssetType assetType, std::string assetID="", std::string groupID="");
+    virtual AssetRef addAssetAndLoadAsync(std::string assetPath, AssetType assetType, std::string assetID="", std::string groupID="");
     
     virtual AssetRef removeAsset(std::string assetID);
     virtual AssetRef removeAsset(AssetRef asset);
+    virtual void removeGroup(std::string groupID);
     
     virtual AssetRef load(std::string assetID, bool bForceReload=false);
     virtual AssetRef load(AssetRef asset, bool bForceReload=false);
@@ -89,6 +92,7 @@ public:
     
     virtual AssetRef unload(std::string assetID);
     virtual AssetRef unload(AssetRef asset);
+    virtual void unloadGroup(std::string groupID);
     virtual void unloadAll();
     virtual void clearLoadQueue();
     
