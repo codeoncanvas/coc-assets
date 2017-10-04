@@ -220,9 +220,12 @@ void AssetAsyncLoaderCI::loadThreadFn(gl::ContextRef context) {
                 
                 ImageSourceRef textureSrc = loadImage(texturePath);
                 gl::TextureRef texture = gl::Texture::create(textureSrc, textureFormat);
-                
+
+#if ! defined( CINDER_GL_ES ) || defined( CINDER_GL_ES_3 )
+                //TODO won't be threadsafe without this
                 auto fence = gl::Sync::create();
                 fence->clientWaitSync();
+#endif
                 
                 textures.pushFront(texture);
 
