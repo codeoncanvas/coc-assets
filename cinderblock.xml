@@ -2,7 +2,7 @@
 <cinder>
 <block
 	name="CoC-Assets"
-	id=""
+	id="cc.codeoncanvas.assets"
 	author=""
 	summary=""
 	license=""
